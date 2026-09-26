@@ -32,9 +32,14 @@
                 {{ $slot }}
             </main>
 
-            <footer style="text-align:center; padding:1.5rem; color:#9ca3af; font-size:0.8rem;">
-                © 2026 Zero Gaspi —
-                <a href="{{ route('confidentialite') }}" style="color:#6b7280; text-decoration:underline;">Politique de confidentialité</a>
+            <footer style="text-align:center; padding:1.5rem; background:#f4f6f4;">
+                <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <a href="{{ route('home') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Accueil</a>
+                    <a href="{{ route('contact') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Contact</a>
+                    <a href="{{ route('mentions-legales') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Mentions légales</a>
+                    <a href="{{ route('confidentialite') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Politique de confidentialité</a>
+                </div>
+                <div style="color:#9ca3af; font-size:0.8rem;">© 2026 Zero Gaspi — Ensemble, réduisons le gaspillage alimentaire.</div>
             </footer>
         </div>
 

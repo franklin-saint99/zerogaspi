@@ -1,37 +1,31 @@
-<div id="cookieBanner" style="display:none; position:fixed; bottom:0; left:0; width:100%; background:#1a5c38; color:white; padding:1.2rem 1.5rem; z-index:999999; box-shadow:0 -4px 16px rgba(0,0,0,0.15);">
-    <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem;">
-        <p style="margin:0; font-size:0.9rem; line-height:1.5; flex:1; min-width:260px;">
-            🍪 Nous utilisons uniquement des cookies strictement nécessaires au fonctionnement du site (connexion, panier, sécurité). Aucun cookie de suivi ou publicitaire n'est utilisé.
-            <a href="#" style="color:#d1fae5; text-decoration:underline;">En savoir plus</a>
-        </p>
-        <div style="display:flex; gap:0.75rem; flex-shrink:0;">
-            <button id="cookieRefuse" style="background:transparent; color:white; border:1px solid white; padding:0.5rem 1.2rem; border-radius:8px; font-size:0.85rem; cursor:pointer;">
-                Refuser
-            </button>
-            <button id="cookieAccept" style="background:white; color:#1a5c38; border:none; padding:0.5rem 1.2rem; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer;">
-                Accepter
-            </button>
-        </div>
-    </div>
+<div id="cookie-consent" style="display:none; position:fixed; left:0; right:0; bottom:0; background:#111827; color:white; padding:1rem 1.5rem; z-index:9999; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:0.85rem;">
+    <span style="color:#e5e7eb;">
+        Ce site utilise uniquement des cookies strictement nécessaires à son fonctionnement (maintien de votre connexion, contenu de votre panier). Aucun cookie de suivi publicitaire n'est utilisé.
+        <a href="{{ route('confidentialite') }}" style="color:#9ca3af; text-decoration:underline;">En savoir plus</a>
+    </span>
+    <button id="cookie-refuse-btn" style="background:transparent; color:#e5e7eb; border:1px solid #4b5563; padding:0.55rem 1.2rem; border-radius:6px; font-size:0.85rem; cursor:pointer; white-space:nowrap;">
+        Refuser
+    </button>
+    <button id="cookie-accept-btn" style="background:#15803d; color:white; border:none; padding:0.55rem 1.4rem; border-radius:6px; font-size:0.85rem; font-weight:600; cursor:pointer; white-space:nowrap;">
+        Accepter
+    </button>
 </div>
 
 <script>
-    (function () {
-        const banner = document.getElementById('cookieBanner');
-        const consent = localStorage.getItem('zerogaspi_cookie_consent');
+    document.addEventListener('DOMContentLoaded', function () {
+        var banner = document.getElementById('cookie-consent');
+        var acceptBtn = document.getElementById('cookie-accept-btn');
 
-        if (!consent) {
-            banner.style.display = 'block';
+        if (!banner || !acceptBtn) return;
+
+        // N'afficher le bandeau que si l'utilisateur n'a pas déjà accepté
+        if (localStorage.getItem('zerogaspi_cookies_acceptes') !== 'oui') {
+            banner.style.display = 'flex';
         }
 
-        document.getElementById('cookieAccept').addEventListener('click', function () {
-            localStorage.setItem('zerogaspi_cookie_consent', 'accepted');
+        acceptBtn.addEventListener('click', function () {
+            localStorage.setItem('zerogaspi_cookies_acceptes', 'oui');
             banner.style.display = 'none';
         });
-
-        document.getElementById('cookieRefuse').addEventListener('click', function () {
-            localStorage.setItem('zerogaspi_cookie_consent', 'refused');
-            banner.style.display = 'none';
-        });
-    })();
+    });
 </script>

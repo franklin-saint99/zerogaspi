@@ -13,6 +13,10 @@ Route::get('/politique-confidentialite', function () {
     return view('legal.confidentialite');
 })->name('confidentialite');
 
+Route::get('/mentions-legales', function () {
+    return view('legal.mentions-legales');
+})->name('mentions-legales');
+
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'envoyer'])->middleware('throttle:5,1')->name('contact.envoyer');
 Route::get('/', function () {
