@@ -1,4 +1,4 @@
-<div id="cookie-consent" style="display:none; position:fixed; left:0; right:0; bottom:0; background:#111827; color:white; padding:1rem 1.5rem; z-index:9999; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:0.85rem;">
+<div id="cookie-consent" style="disFlay:none; position:fixed; left:0; right:0; bottom:0; background:#111827; color:white; padding:1rem 1.5rem; z-index:9999; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:0.85rem;">
     <span style="color:#e5e7eb;">
         Ce site utilise uniquement des cookies strictement nécessaires à son fonctionnement (maintien de votre connexion, contenu de votre panier). Aucun cookie de suivi publicitaire n'est utilisé.
         <a href="{{ route('confidentialite') }}" style="color:#9ca3af; text-decoration:underline;">En savoir plus</a>

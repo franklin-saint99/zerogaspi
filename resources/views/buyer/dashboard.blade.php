@@ -47,8 +47,7 @@
             <div style="display:flex;align-items:center;gap:1rem;">
                 <a href="{{ route('panier.index') }}" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;background:white;padding:0.5rem 1rem;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
                     🛒 <span style="color:#374151;font-size:0.9rem;">Mon panier</span>
-                    <span class="panier-count">{{ \App\Models\Panier::where('user_id', Auth::id())->count() }}</span>
-                </a>
+                    <span class="panier-count">{{ \App\Models\LignePanier::whereHas('panier', fn($q) => $q->where('user_id', Auth::id())->where('statut', 'en_cours'))->count() }}</span>                </a>
                 <span class="badge-role">Acheteur</span>
             </div>
         </div>

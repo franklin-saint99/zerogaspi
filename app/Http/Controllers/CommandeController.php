@@ -5,45 +5,55 @@ namespace App\Http\Controllers;
 use App\Mail\CommandeConfirmee;
 use App\Mail\NouvelleCommandeVendeur;
 use App\Models\Commande;
+use App\Models\LignePanier;
+use App\Models\Panier;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class CommandeController extends Controller
 {
+    // Achat direct d'un produit (sans passer par le panier en cours)
     public function store(Request $request)
     {
         $produit = Product::findOrFail($request->product_id);
 
-        $commande = Commande::create([
-            'user_id' => Auth::id(),
-            'statut' => 'en_attente',
-            'total' => $produit->prix,
-        ]);
+        $commande = DB::transaction(function () use ($produit) {
+            // Un panier validé contenant uniquement ce produit
+            $panier = Panier::create([
+                'user_id' => Auth::id(),
+                'statut' => 'valide',
+            ]);
 
-        $commande->produits()->attach($produit->id, [
-            'quantite' => 1,
-            'prix' => $produit->prix,
-        ]);
+            LignePanier::create([
+                'panier_id' => $panier->id,
+                'product_id' => $produit->id,
+                'quantite' => 1,
+                'prix_unitaire' => $produit->prix,
+            ]);
+
+            return Commande::create([
+                'panier_id' => $panier->id,
+                'statut' => 'en_attente',
+                'total' => $produit->prix,
+            ]);
+        });
 
         return redirect()->route('commandes.paiement', $commande->id);
     }
 
     public function paiement(Commande $commande)
     {
-        if ($commande->user_id !== Auth::id()) {
-            abort(403, 'Cette commande ne vous appartient pas.');
-        }
+        $this->verifierProprietaire($commande);
 
         return view('buyer.paiement', compact('commande'));
     }
 
     public function confirmer(Commande $commande)
     {
-        if ($commande->user_id !== Auth::id()) {
-            abort(403, 'Cette commande ne vous appartient pas.');
-        }
+        $this->verifierProprietaire($commande);
 
         $commande->update(['statut' => 'en_attente']);
 
@@ -69,7 +79,19 @@ class CommandeController extends Controller
 
     public function mesAchats()
     {
-        $commandes = Commande::where('user_id', Auth::id())->latest()->get();
+        // Les commandes dont le panier appartient à l'acheteur connecté
+        $commandes = Commande::whereHas('panier', function ($q) {
+            $q->where('user_id', Auth::id());
+        })->latest()->get();
+
         return view('buyer.achats', compact('commandes'));
+    }
+
+    // L'acheteur d'une commande se retrouve maintenant via son panier
+    private function verifierProprietaire(Commande $commande): void
+    {
+        if ((int) $commande->panier->user_id !== (int) Auth::id()) {
+            abort(403, 'Cette commande ne vous appartient pas.');
+        }
     }
 }

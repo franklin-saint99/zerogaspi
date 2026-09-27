@@ -17,12 +17,14 @@ class SellerController extends Controller
         $produitsVendus = $produits->where('statut', 'epuise')->count();
         $produitsExpires = $produits->where('statut', 'expire')->count();
 
-        $produitsSauves = DB::table('commande_produit')
-            ->join('commandes', 'commandes.id', '=', 'commande_produit.commande_id')
-            ->join('products', 'products.id', '=', 'commande_produit.product_id')
+        // Quantité de produits du vendeur récupérés par les acheteurs
+        // (lignes des paniers dont la commande est "recuperee")
+        $produitsSauves = DB::table('ligne_panier')
+            ->join('commandes', 'commandes.panier_id', '=', 'ligne_panier.panier_id')
+            ->join('products', 'products.id', '=', 'ligne_panier.product_id')
             ->where('products.vendeur_id', Auth::id())
             ->where('commandes.statut', 'recuperee')
-            ->sum('commande_produit.quantite');
+            ->sum('ligne_panier.quantite');
 
         return view('seller.dashboard', compact('produits', 'totalProduits', 'produitsVendus', 'produitsExpires', 'produitsSauves'));
     }
@@ -46,11 +48,12 @@ class SellerController extends Controller
 
         return redirect()->route('seller.commandes')->with('success', 'Statut mis à jour !');
     }
-    public function marquerAlerteLue($id)
-{
-    $alerte = \App\Models\Alerte::where('user_id', Auth::id())->findOrFail($id);
-    $alerte->update(['lu' => true]);
 
-    return redirect()->back();
-}
+    public function marquerAlerteLue($id)
+    {
+        $alerte = \App\Models\Alerte::where('user_id', Auth::id())->findOrFail($id);
+        $alerte->update(['lu' => true]);
+
+        return redirect()->back();
+    }
 }

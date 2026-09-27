@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+       
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
@@ -40,5 +41,14 @@ class User extends Authenticatable
     public function produits()
     {
         return $this->hasMany(Product::class, 'vendeur_id');
+    }
+     public function paniers()
+    {
+        return $this->hasMany(\App\Models\Panier::class, 'user_id');
+    }
+
+    public function commandes()
+    {
+        return $this->hasManyThrough(\App\Models\Commande::class, \App\Models\Panier::class, 'user_id', 'panier_id');
     }
 }

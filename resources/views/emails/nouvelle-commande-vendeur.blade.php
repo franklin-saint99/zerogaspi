@@ -25,7 +25,7 @@
                     <tr style="border-bottom:1px solid #e5e7eb;">
                         <td style="padding:0.5rem; font-size:0.85rem;">{{ $produit->nom }}</td>
                         <td style="padding:0.5rem; font-size:0.85rem;">{{ $produit->pivot->quantite }}</td>
-                        <td style="padding:0.5rem; font-size:0.85rem;">{{ number_format($produit->pivot->prix, 2) }} €</td>
+                        <td style="padding:0.5rem; font-size:0.85rem;">{{ number_format($produit->pivot->prix_unitaire, 2) }} €</td>
                     </tr>
                     @endforeach
                 </tbody>

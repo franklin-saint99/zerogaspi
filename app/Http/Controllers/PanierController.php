@@ -2,24 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Commande;
+use App\Models\LignePanier;
 use App\Models\Panier;
 use App\Models\Product;
-use App\Models\Commande;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PanierController extends Controller
 {
+    // Panier "en_cours" de l'acheteur connecté, avec ses lignes et leurs produits (null s'il n'en a pas)
+    private function panierEnCours(): ?Panier
+    {
+        return Panier::with('lignes.product')
+            ->where('user_id', Auth::id())
+            ->where('statut', 'en_cours')
+            ->first();
+    }
+
     public function index()
     {
-        $paniers = Panier::with('product')
-            ->where('user_id', Auth::id())
-            ->get();
+        $panier = $this->panierEnCours();
+        $lignes = $panier ? $panier->lignes : collect();
 
-        $total = $paniers->sum(fn($p) => $p->product->prix * $p->quantite);
+        $total = $lignes->sum(fn ($ligne) => $ligne->product->prix * $ligne->quantite);
 
-        return view('buyer.panier', compact('paniers', 'total'));
+        return view('buyer.panier', compact('lignes', 'total'));
     }
 
     public function ajouter(Request $request)
@@ -31,8 +40,11 @@ class PanierController extends Controller
 
         $produit = Product::findOrFail($request->product_id);
 
-        $existant = Panier::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)
+        // Récupère le panier en cours de l'acheteur, ou le crée
+        $panier = Panier::enCoursPour(Auth::id());
+
+        $existant = $panier->lignes()
+            ->where('product_id', $produit->id)
             ->first();
 
         $quantiteDejaPanier = $existant ? $existant->quantite : 0;
@@ -48,72 +60,76 @@ class PanierController extends Controller
         }
 
         if ($existant) {
-            $existant->increment('quantite', $request->quantite);
+            // Le produit est déjà dans le panier : on augmente la quantité
+            $existant->increment('quantite', $request->quantite, ['prix_unitaire' => $produit->prix]);
         } else {
-            Panier::create([
-                'user_id' => Auth::id(),
-                'product_id' => $request->product_id,
+            // Nouvelle ligne dans le panier
+            LignePanier::create([
+                'panier_id' => $panier->id,
+                'product_id' => $produit->id,
                 'quantite' => $request->quantite,
+                'prix_unitaire' => $produit->prix,
             ]);
         }
 
         return redirect()->back()->with('success', 'Produit ajouté au panier !');
     }
 
+    // $id = id de la ligne de panier à supprimer
     public function supprimer($id)
     {
-        Panier::where('id', $id)->where('user_id', Auth::id())->delete();
+        LignePanier::where('id', $id)
+            ->whereHas('panier', function ($q) {
+                $q->where('user_id', Auth::id())->where('statut', 'en_cours');
+            })
+            ->delete();
+
         return redirect()->back()->with('success', 'Produit supprimé du panier !');
     }
 
     public function commander()
     {
-        $paniers = Panier::with('product')
-            ->where('user_id', Auth::id())
-            ->get();
+        $panier = $this->panierEnCours();
 
-        if ($paniers->isEmpty()) {
+        if (! $panier || $panier->lignes->isEmpty()) {
             return redirect()->route('panier.index')->with('error', 'Votre panier est vide !');
         }
 
         // Vérification finale du stock avant de valider (au cas où il aurait changé entre-temps)
-        foreach ($paniers as $panier) {
-            $stockActuel = Product::find($panier->product_id)->stock;
-            if ($panier->quantite > $stockActuel) {
+        foreach ($panier->lignes as $ligne) {
+            $stockActuel = Product::find($ligne->product_id)->stock;
+            if ($ligne->quantite > $stockActuel) {
                 return redirect()->route('panier.index')->with(
                     'error',
-                    "Stock insuffisant pour \"{$panier->product->nom}\". Il ne reste que {$stockActuel} unité(s). Merci d'ajuster votre panier."
+                    "Stock insuffisant pour \"{$ligne->product->nom}\". Il ne reste que {$stockActuel} unité(s). Merci d'ajuster votre panier."
                 );
             }
         }
 
-        $total = $paniers->sum(fn($p) => $p->product->prix * $p->quantite);
+        $total = $panier->lignes->sum(fn ($ligne) => $ligne->product->prix * $ligne->quantite);
 
-        $commande = DB::transaction(function () use ($paniers, $total) {
-            $commande = Commande::create([
-                'user_id' => Auth::id(),
-                'statut' => 'en_attente',
-                'total' => $total,
-            ]);
+        $commande = DB::transaction(function () use ($panier, $total) {
+            foreach ($panier->lignes as $ligne) {
+                // On fige le prix au moment de la commande
+                $ligne->update(['prix_unitaire' => $ligne->product->prix]);
 
-            foreach ($paniers as $panier) {
-                $commande->produits()->attach($panier->product_id, [
-                    'quantite' => $panier->quantite,
-                    'prix' => $panier->product->prix,
-                ]);
-
-                $produit = Product::lockForUpdate()->find($panier->product_id);
-                $produit->decrement('stock', $panier->quantite);
+                $produit = Product::lockForUpdate()->find($ligne->product_id);
+                $produit->decrement('stock', $ligne->quantite);
 
                 if ($produit->stock <= 0) {
                     $produit->update(['statut' => 'epuise']);
                 }
             }
 
-            return $commande;
-        });
+            // Le panier est validé : il devient la commande (au prochain ajout, un nouveau panier sera créé)
+            $panier->update(['statut' => 'valide']);
 
-        Panier::where('user_id', Auth::id())->delete();
+            return Commande::create([
+                'panier_id' => $panier->id,
+                'statut' => 'en_attente',
+                'total' => $total,
+            ]);
+        });
 
         return redirect()->route('commandes.paiement', $commande->id);
     }

@@ -1,54 +1,28 @@
 import 'package:flutter/material.dart';
-import 'services/product_service.dart';
+
+import 'screens/login_screen.dart';
+
 void main() {
- runApp(const MyApp());
-}
-class MyApp extends StatelessWidget {
- const MyApp({super.key});
- @override
- Widget build(BuildContext context) {
- return MaterialApp(
- debugShowCheckedModeBanner: false,
- home: Scaffold(
- appBar: AppBar(
- title: const Text('Test API Laravel'),
- ),
- body: FutureBuilder(
- future: ProductService.getProducts(),
- builder: (context, snapshot) {
- if (snapshot.connectionState ==
- ConnectionState.waiting) {
- return const Center(
- child:
- CircularProgressIndicator(),
- );
- }
- if (snapshot.hasError) {
- return Center(
- child: Text(
- 'Erreur : ${snapshot.error}',
- ),
- );
- }
- final products =
- snapshot.data ?? [];
- return ListView.builder(
- itemCount: products.length,
- itemBuilder: (context, index) {
- final product =
- products[index];
- return ListTile(
- title: Text(product.name),
-subtitle: Text(
- '${product.price} €',
- ),
- );
- },
- );
- },
- ),
- ),
- );
- }
+  runApp(const ZeroGaspiApp());
 }
 
+class ZeroGaspiApp extends StatelessWidget {
+  const ZeroGaspiApp({super.key});
+
+  static const vertFonce = Color(0xFF1A5C38);
+  static const vert = Color(0xFF27AE60);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Zéro Gaspi',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: vert, primary: vertFonce),
+        scaffoldBackgroundColor: const Color(0xFFF4F6F4),
+        useMaterial3: true,
+      ),
+      home: const LoginScreen(),
+    );
+  }
+}

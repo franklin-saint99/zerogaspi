@@ -27,7 +27,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
             <div>
                 <h1 style="font-size:1.6rem;font-weight:700;color:#1a1a1a;">Mon panier 🛒</h1>
-                <p style="color:#6b7280;font-size:0.9rem;margin-top:0.25rem;">{{ $paniers->count() }} produit(s) dans votre panier</p>
+                <p style="color:#6b7280;font-size:0.9rem;margin-top:0.25rem;">{{ $lignes->count() }} produit(s) dans votre panier</p>
             </div>
             <span class="badge-role">Acheteur</span>
         </div>
@@ -38,7 +38,13 @@
             </div>
         @endif
 
-        @if($paniers->count() > 0)
+        @if(session('error'))
+            <div style="background:#fee2e2;color:#991b1b;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if($lignes->count() > 0)
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start;">
 
             <div class="panier-card">
@@ -56,14 +62,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($paniers as $panier)
+                        @foreach($lignes as $ligne)
                         <tr>
-                            <td><strong>{{ $panier->product->nom }}</strong></td>
-                            <td>{{ number_format($panier->product->prix, 2) }} €</td>
-                            <td>{{ $panier->quantite }}</td>
-                            <td>{{ number_format($panier->product->prix * $panier->quantite, 2) }} €</td>
+                            <td><strong>{{ $ligne->product->nom }}</strong></td>
+                            <td>{{ number_format($ligne->product->prix, 2) }} €</td>
+                            <td>{{ $ligne->quantite }}</td>
+                            <td>{{ number_format($ligne->product->prix * $ligne->quantite, 2) }} €</td>
                             <td>
-                                <form method="POST" action="{{ route('panier.supprimer', $panier->id) }}">
+                                <form method="POST" action="{{ route('panier.supprimer', $ligne->id) }}">
                                     @csrf @method('DELETE')
                                     <button class="btn-danger" onclick="return confirm('Supprimer ?')">🗑️</button>
                                 </form>
@@ -76,10 +82,10 @@
 
             <div class="total-card">
                 <h2>💰 Récapitulatif</h2>
-                @foreach($paniers as $panier)
+                @foreach($lignes as $ligne)
                 <div class="total-ligne">
-                    <span>{{ $panier->product->nom }}</span>
-                    <span>{{ number_format($panier->product->prix * $panier->quantite, 2) }} €</span>
+                    <span>{{ $ligne->product->nom }}</span>
+                    <span>{{ number_format($ligne->product->prix * $ligne->quantite, 2) }} €</span>
                 </div>
                 @endforeach
                 <div class="total-final">
@@ -92,7 +98,7 @@
                 </form>
                 <a href="{{ route('dashboard') }}" style="display:block;text-align:center;margin-top:0.75rem;color:#6b7280;font-size:0.85rem;text-decoration:none;">
                     ← Continuer mes achats
-                </a>
+     F           </a>
             </div>
 
         </div>

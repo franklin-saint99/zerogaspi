@@ -90,9 +90,9 @@
                         @foreach($commande->produits as $produit)
                         <tr>
                             <td><strong>{{ $produit->nom }}</strong></td>
-                            <td>{{ number_format($produit->pivot->prix, 2) }} €</td>
+                            <td>{{ number_format($produit->pivot->prix_unitaire, 2) }} €</td>
                             <td>{{ $produit->pivot->quantite }}</td>
-                            <td>{{ number_format($produit->pivot->prix * $produit->pivot->quantite, 2) }} €</td>
+                            <td>{{ number_format($produit->pivot->prix_unitaire * $produit->pivot->quantite, 2) }} €</td>
                         </tr>
                         @endforeach
                     </tbody>
