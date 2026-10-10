@@ -15,6 +15,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+        <!-- Accessibilité : lien d'évitement, visible au premier appui sur Tab -->
+        <a href="#contenu" class="lien-evitement">Aller au contenu principal</a>
+
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             @include('layouts.navigation')
 
@@ -28,18 +31,18 @@
             @endisset
 
             <!-- Page Content -->
-            <main>
+            <main id="contenu" tabindex="-1">
                 {{ $slot }}
             </main>
 
             <footer style="text-align:center; padding:1.5rem; background:#f4f6f4;">
-                <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                <nav aria-label="Liens du pied de page" style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
                     <a href="{{ route('home') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Accueil</a>
                     <a href="{{ route('contact') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Contact</a>
                     <a href="{{ route('mentions-legales') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Mentions légales</a>
                     <a href="{{ route('confidentialite') }}" style="color:#4b5563; text-decoration:none; font-size:0.85rem;">Politique de confidentialité</a>
-                </div>
-                <div style="color:#9ca3af; font-size:0.8rem;">© 2026 Zero Gaspi — Ensemble, réduisons le gaspillage alimentaire.</div>
+                </nav>
+                <div style="color:#4b5563; font-size:0.8rem;">© 2026 Zero Gaspi — Ensemble, réduisons le gaspillage alimentaire.</div>
             </footer>
         </div>
 

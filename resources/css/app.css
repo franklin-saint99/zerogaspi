@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Accessibilité : navigation au clavier ===== */
+
+/* Lien d'évitement : caché, il apparaît au premier appui sur la touche Tab */
+.lien-evitement {
+    position: absolute;
+    left: -9999px;
+}
+
+.lien-evitement:focus {
+    left: 16px;
+    top: 16px;
+    z-index: 1000;
+    background: #173B27;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Contour bien visible sur l'élément sélectionné au clavier */
+:focus-visible {
+    outline: 3px solid #1E8449;
+    outline-offset: 2px;
+}
