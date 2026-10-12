@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Models\Alerte;
 use App\Models\Category;
+use App\Models\LignePanier;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -41,7 +44,8 @@ class ProductController extends Controller
             'stock' => $request->stock,
             'statut' => 'disponible',
             'date_peremption' => $request->date_peremption,
-            'image' => $request->file('image') ? $request->file('image')->store('produits', 'public') : null,
+            // La photo va sur le disque par défaut : le disque "public" en local, le bucket en ligne
+            'image' => $request->file('image') ? $request->file('image')->store('produits') : null,
             'category_id' => $request->category_id,
             'vendeur_id' => Auth::id(),
         ]);
@@ -88,7 +92,7 @@ class ProductController extends Controller
         ];
 
         if ($request->file('image')) {
-            $data['image'] = $request->file('image')->store('produits', 'public');
+            $data['image'] = $request->file('image')->store('produits');
         }
 
         $product->update($data);
@@ -102,7 +106,23 @@ class ProductController extends Controller
             abort(403, 'Ce produit ne vous appartient pas.');
         }
 
-        $product->delete();
+        // Un produit déjà commandé est conservé, pour garder l'historique des commandes
+        $dejaCommande = LignePanier::where('product_id', $product->id)
+            ->whereHas('panier', fn ($q) => $q->where('statut', 'valide'))
+            ->exists();
+
+        if ($dejaCommande) {
+            return redirect()->route('seller.dashboard')
+                ->with('error', 'Ce produit fait partie de commandes : il ne peut pas être supprimé. Mettez son stock à 0 pour le retirer de la vente.');
+        }
+
+        // Sinon : on le retire des paniers en cours et des alertes, puis on le supprime
+        DB::transaction(function () use ($product) {
+            LignePanier::where('product_id', $product->id)->delete();
+            Alerte::where('produit_id', $product->id)->delete();
+            $product->delete();
+        });
+
         return redirect()->route('seller.dashboard')->with('success', 'Produit supprimé !');
     }
 }

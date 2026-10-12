@@ -97,7 +97,7 @@
             <label>Image (laisser vide pour garder l'image actuelle)</label>
             <input type="file" name="image" class="form-control">
             @if($product->image)
-                <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->nom }}" style="max-width:150px; margin-top:0.5rem;">
+                <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}" alt="{{ $product->nom }}" style="max-width:150px; margin-top:0.5rem;">
             @endif
         </div>
 

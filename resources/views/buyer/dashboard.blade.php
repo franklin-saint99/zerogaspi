@@ -95,7 +95,7 @@
 
                 <div class="produit-img">
                     @if($produit->image)
-                        <img src="{{ asset('storage/'.$produit->image) }}" alt="{{ $produit->nom }}">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($produit->image) }}" alt="{{ $produit->nom }}">
                     @else
                         🥦
                     @endif

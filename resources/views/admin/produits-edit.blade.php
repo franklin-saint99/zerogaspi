@@ -73,7 +73,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Image (laisser vide pour garder l'image actuelle)</label>
                         <input type="file" name="image" accept="image/*" class="w-full text-sm">
                         @if($produit->image)
-                            <img src="{{ asset('storage/'.$produit->image) }}" alt="{{ $produit->nom }}" style="max-width:150px; margin-top:0.5rem;" class="rounded-lg">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($produit->image) }}" alt="{{ $produit->nom }}" style="max-width:150px; margin-top:0.5rem;" class="rounded-lg">
                         @endif
                     </div>
 
